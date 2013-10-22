@@ -36,12 +36,9 @@ class SalesforceRestClient{
         // create a rest object - Pest in this case
         $this->getRest();
         
-        if(! $this->isAuthorized())
-        {
+        if(! $this->isAuthorized()) {
             $this->authUsertoSalesforce();
-        }
-        else
-        {
+        } else {
             $this->setAccessToken($_SESSION['access_token']);
             $this->setInstanceUrl($_SESSION['instance_url']);
         }
