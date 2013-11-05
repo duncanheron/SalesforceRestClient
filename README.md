@@ -36,7 +36,7 @@ foreach ($records as $record) {
 
 ### Retrieving a single record
 ```php
-$soql = 'SELECT Name, Id from Account LIMIT 11';
+$soql = 'SELECT Name, Id from Account LIMIT 1';
 $record = $restClient->getRecord($soql);
 
 if ($record) {
