@@ -317,7 +317,7 @@ class SalesforceRestClient{
 
         $response = json_decode($thing);
 
-        bk_debug($response);
+        return $response;
     }
 
 }
