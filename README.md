@@ -5,7 +5,7 @@ Because I find using curl cumbersome I chose to use Pest(github.com/educoder/pes
 
 ### The obvious
 ```php
-include_once '/SalesforceRstClient.php';
+require_once '/SalesforceRstClient.php';
 $restClient = new SalesforceRestClient(
 			'KEY',
 			'SECRET',
