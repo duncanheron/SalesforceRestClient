@@ -71,7 +71,7 @@ $updateContact = $restClient->updateRecord($recordId,'Contact',$data);
 ```  
 
 
-More examples in <a href="http://github.com/duncanheron/SalesforceRestClient/sf-index.php">index</a> file.
+More examples in <a href="http://github.com/duncanheron/SalesforceRestClient/blob/master/sf-index.php">index</a> file.
 
   
 
