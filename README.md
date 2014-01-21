@@ -70,10 +70,10 @@ $updateContact = $restClient->updateRecord($recordId,'Contact',$data);
 
 ```  
 
-```html
+
 More examples in <a href="http://github.com/duncanheron/SalesforceRestClient/sf-index.php">index</a> file.
 
-```  
+  
 
 ### Author
 ```
