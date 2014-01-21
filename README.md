@@ -5,7 +5,7 @@ Because I find using curl cumbersome I chose to use (<a target="_blank" href="ht
 
 ### The obvious
 ```php
-require_once '/SalesforceRestClient.php';
+use Salesforce\SalesforceBundle\Entity\SalesforceRestClient;
 $restClient = new SalesforceRestClient(
 			'KEY',
 			'SECRET',
