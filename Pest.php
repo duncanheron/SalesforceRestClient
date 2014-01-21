@@ -1,12 +1,7 @@
 <?php
-/**
- * Pest is a REST client for PHP.
- *
- * See http://github.com/educoder/pest for details.
- *
- * This code is licensed for use, modification, and distribution
- * under the terms of the MIT License (see http://en.wikipedia.org/wiki/MIT_License)
- */
+
+namespace Salesforce\SalesforceBundle\Entity;
+
 class Pest
 {
     /**
@@ -54,7 +49,7 @@ class Pest
     public function __construct($base_url)
     {
         if (!function_exists('curl_init')) {
-            throw new Exception('CURL module not available! Pest requires CURL. See http://php.net/manual/en/book.curl.php');
+            throw new \Exception('CURL module not available! Pest requires CURL. See http://php.net/manual/en/book.curl.php');
         }
 
         /*
@@ -515,7 +510,7 @@ class Pest
     }
 }
 
-class Pest_Exception extends Exception
+class Pest_Exception extends \Exception
 {}
 class Pest_UnknownResponse extends Pest_Exception
 {}

@@ -1,4 +1,8 @@
 <?php
+namespace Salesforce\SalesforceBundle\Entity;
+
+use Salesforce\SalesforceBundle\Entity\Pest;
+
 class SalesforceRestClient{
 
     private $consumerKey;
@@ -23,22 +27,24 @@ class SalesforceRestClient{
      * @param [string]  $sfPassword
      * @param boolean $sandbox
      */
-    public function __construct($consumerKey, $consumerSecret, $redirectUri, $sfUsername, $sfPassword, $sfApiId, $sandbox = false) {
+    public function __construct($consumerKey, $consumerSecret, $redirectUri, $sfUsername, $sfPassword, $sandbox = false) {
 
-        $this->setLoginBaseUrl();
+        $this->setLoginBaseUrl($sandbox);
         $this->setConsumerKey($consumerKey);
         $this->setConsumerSecret($consumerSecret);
         $this->setRedirectUri($redirectUri);
         $this->setSfUsername($sfUsername);
         $this->setSfPassword($sfPassword);
-        $this->setApiUserId($sfApiId);
 
         // create a rest object - Pest in this case
         $this->getRest();
         
-        if(! $this->isAuthorized()) {
+        if(! $this->isAuthorized())
+        {
             $this->authUsertoSalesforce();
-        } else {
+        }
+        else
+        {
             $this->setAccessToken($_SESSION['access_token']);
             $this->setInstanceUrl($_SESSION['instance_url']);
         }
@@ -48,7 +54,7 @@ class SalesforceRestClient{
      * Set the url based on wether the salesforce installation is in sandbox or not
      * @param boolean $sandbox
      */
-    public function setLoginBaseUrl()
+    public function setLoginBaseUrl($sandbox)
     {
         if(! $sandbox) {
             $this->loginBaseUrl = 'https://test.salesforce.com';
@@ -132,7 +138,7 @@ class SalesforceRestClient{
         );
 
         try {
-            $thing = $this->pest->post($postQueryUrl, $data, $headers);
+            $thing = $this->pest->post($postQueryUrl, $data);
         } catch (Exception $e) {
             unset($_SESSION['access_token']);
             unset($_SESSION['instance_url']);
@@ -145,7 +151,7 @@ class SalesforceRestClient{
             $this->isAuthorized = 0;
             die("Invalid access token from Salesforce");
         }
-
+        
         $this->setAccessToken($query_request_data->access_token);
         $this->setInstanceUrl($query_request_data->instance_url);
         $this->refreshRest();
@@ -171,7 +177,6 @@ class SalesforceRestClient{
     {
         $url = $this->loginBaseUrl;
         if (! $this->pest) {
-            include_once $_SERVER['DOCUMENT_ROOT'] . "/pest/Pest.php";
             $this->pest = new Pest($url);
         }
         return $this->pest;
@@ -186,7 +191,6 @@ class SalesforceRestClient{
             die("no instance url found");
 
         $url = $this->getInstanceUrl();
-        include_once $_SERVER['DOCUMENT_ROOT'] . "/pest/Pest.php";
         $this->pestQuery = new Pest($url);
         
         return $this->pestQuery;
@@ -205,7 +209,7 @@ class SalesforceRestClient{
         $headers = array('Authorization' => 'OAuth '. $this->getAccessToken());
 
         try {
-            $thing = $this->pestQuery->get('/services/data/v20.0/query', $data, $headers);
+            $thing = $this->pestQuery->get('/services/data/v29.0/query', $data, $headers);
         } catch (Exception $e) {
             unset($_SESSION['access_token']);
             unset($_SESSION['instance_url']);
@@ -234,7 +238,10 @@ class SalesforceRestClient{
     public function getRecord($soql) {
         
         $record = $this->getRecords($soql);
-        return $record[0];
+        if($record) {
+            return $record[0];
+        }
+        
     }
 
     /**
@@ -255,7 +262,7 @@ class SalesforceRestClient{
                         );
 
         try {
-            $thing = $this->pestQuery->post('/services/data/v20.0/sobjects/'.$sfObject."/", $data, $headers);
+            $thing = $this->pestQuery->post('/services/data/v29.0/sobjects/'.$sfObject."/", $data, $headers);
         } catch (Exception $e) {            
             echo $e->getMessage();
         }
@@ -284,7 +291,7 @@ class SalesforceRestClient{
                         );
 
         try {
-            $thing = $this->pestQuery->patch('/services/data/v20.0/sobjects/'.$sfObject."/".$id."/", $data, $headers);
+            $thing = $this->pestQuery->patch('/services/data/v29.0/sobjects/'.$sfObject."/".$id."/", $data, $headers);
         } catch (Exception $e) {            
             echo $e->getMessage();
         }
@@ -310,7 +317,7 @@ class SalesforceRestClient{
                         );
 
         try {
-            $thing = $this->pestQuery->get('/services/data/v20.0/sobjects/'.$sfObject."/describe/", $data, $headers);
+            $thing = $this->pestQuery->get('/services/data/v29.0/sobjects/'.$sfObject."/describe/", false, $headers);
         } catch (Exception $e) {            
             echo $e->getMessage();
         }
