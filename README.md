@@ -1,18 +1,15 @@
 ### Salesforce Rest API
 A php class to interact with the Salesforce REST API<br /><br />
 Requirements:<br />
-Because I find using curl cumbersome I chose to use (<a target="_blank" href="http://github.com/educoder/pest">Pest</a>) to make my REST requests.
+Because I find using curl cumbersome I chose to use Guzzle to make my REST requests.
 
 ### The obvious
 ```php
 use Salesforce\SalesforceBundle\Entity\SalesforceRestClient;
 $restClient = new SalesforceRestClient(
-			'KEY',
-			'SECRET',
-			'REDIRECT',
-			'SALESFORCEUSER',
-			'SALESFORCEPASS',
-			'SFAPIUSERID');
+	$config,
+    new Guzzle\Http\Client
+);
 ```
 
 ### Describing a Salesforce object

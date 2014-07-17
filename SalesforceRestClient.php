@@ -1,7 +1,8 @@
 <?php
-namespace Salesforce\SalesforceBundle\Entity;
+namespace Salesforce\Client;
 
-use Salesforce\SalesforceBundle\Entity\Pest;
+use Guzzle\Http\Exception\ClientErrorResponseException;
+use Guzzle\Http\Client;
 
 class SalesforceRestClient{
 
@@ -15,116 +16,36 @@ class SalesforceRestClient{
     private $apiUserId;
     private $accessToken;
     private $instanceUrl;
-    private $pest;
+    private $client;
 
-    /**
-     * Setup rest auth for web app to salesforce
-     * Creates sessions but nothing returned
-     * @param [string]  $consumerKey
-     * @param [string]  $consumerSecret
-     * @param [string]  $redirectUri
-     * @param [string]  $sfUsername
-     * @param [string]  $sfPassword
-     * @param boolean $sandbox
-     */
-    public function __construct($consumerKey, $consumerSecret, $redirectUri, $sfUsername, $sfPassword, $sandbox = false) {
+    public function __construct(Array $conf, $guzzleClient) {
 
-        $this->setLoginBaseUrl($sandbox);
-        $this->setConsumerKey($consumerKey);
-        $this->setConsumerSecret($consumerSecret);
-        $this->setRedirectUri($redirectUri);
-        $this->setSfUsername($sfUsername);
-        $this->setSfPassword($sfPassword);
+        $this->client = $guzzleClient;
+
+        $this->setLoginBaseUrl($conf['sandbox']);
+        $this->setConsumerKey($conf['consumerKey']);
+        $this->setConsumerSecret($conf['consumerSecret']);
+        $this->setRedirectUri($conf['redirectUri']);
+        $this->setSfUsername($conf['sfUsername']);
+        $this->setSfPassword($conf['sfPassword']);
 
         // create a rest object - Pest in this case
         $this->getRest();
         
-        if(! $this->isAuthorized())
-        {
+        if(! $this->isAuthorized()) {
             $this->authUsertoSalesforce();
-        }
-        else
-        {
+        } else {
             $this->setAccessToken($_SESSION['access_token']);
             $this->setInstanceUrl($_SESSION['instance_url']);
         }
     }
 
-    /**
-     * Set the url based on wether the salesforce installation is in sandbox or not
-     * @param boolean $sandbox
-     */
-    public function setLoginBaseUrl($sandbox)
-    {
-        if(! $sandbox) {
-            $this->loginBaseUrl = 'https://test.salesforce.com';
-        }
-        else {
-            $this->loginBaseUrl = 'https://login.salesforce.com';   
-        }
-        
-    }
-
-    public function setApiUserId($apiUserId)
-    {
-        $this->apiUserId = $apiUserId;
-    }
-
-    public function getApiUserId()
-    {
-        return $this->apiUserId;
-    }
-
-    public function setConsumerKey($key)
-    {
-        $this->consumerKey = $key;
-    }
-
-    public function setConsumerSecret($secret)
-    {
-        $this->consumerSecret = $secret;
-    }
-
-    public function setRedirectUri($url)
-    {
-        $this->redirectUri = $url;
-    }
-
-    public function setSfUsername($user)
-    {
-        $this->sfUsername = $user;
-    }
-
-    public function setSfPassword($pass)
-    {
-        $this->sfPassword = $pass;
-    }
-
-    public function getInstanceUrl()
-    {
-        return $this->instanceUrl;
-    }
-
-    public function getAccessToken()
-    {
-        return $this->accessToken;
-    }
-
-    public function setInstanceUrl($url)
-    {
-        $this->instanceUrl = $url;
-    }
-
-    public function setAccessToken($token)
-    {
-        $this->accessToken = $token;
-    }
-
+    
     /**
      * get the access token from salesforce which allows rest calls to be made
      * sessions and object variables configured
      */
-    public function authUsertoSalesforce()
+    private function authUsertoSalesforce()
     {
         $postQueryUrl = '/services/oauth2/token';
 
@@ -138,7 +59,7 @@ class SalesforceRestClient{
         );
 
         try {
-            $thing = $this->pest->post($postQueryUrl, $data);
+            $thing = $this->client->post($postQueryUrl, $data);
         } catch (Exception $e) {
             unset($_SESSION['access_token']);
             unset($_SESSION['instance_url']);
@@ -171,32 +92,6 @@ class SalesforceRestClient{
     }
 
     /**
-     * Used for inital auth and access token
-     */
-    public function getRest()
-    {
-        $url = $this->loginBaseUrl;
-        if (! $this->pest) {
-            $this->pest = new Pest($url);
-        }
-        return $this->pest;
-    }
-
-    /**
-     * used after auth as object base url changes
-     */
-    public function refreshRest()
-    {
-        if(!$this->getInstanceUrl())
-            die("no instance url found");
-
-        $url = $this->getInstanceUrl();
-        $this->pestQuery = new Pest($url);
-        
-        return $this->pestQuery;
-    }
-
-    /**
      * Return records from salesforce
      * @param  string $soql
      * @return recordSet object
@@ -209,7 +104,7 @@ class SalesforceRestClient{
         $headers = array('Authorization' => 'OAuth '. $this->getAccessToken());
 
         try {
-            $thing = $this->pestQuery->get('/services/data/v29.0/query', $data, $headers);
+            $thing = $this->client->get('/services/data/v29.0/query', $data, $headers);
         } catch (Exception $e) {
             unset($_SESSION['access_token']);
             unset($_SESSION['instance_url']);
@@ -262,7 +157,7 @@ class SalesforceRestClient{
                         );
 
         try {
-            $thing = $this->pestQuery->post('/services/data/v29.0/sobjects/'.$sfObject."/", $data, $headers);
+            $thing = $this->client->post('/services/data/v29.0/sobjects/'.$sfObject."/", $data, $headers);
         } catch (Exception $e) {            
             echo $e->getMessage();
         }
@@ -291,7 +186,7 @@ class SalesforceRestClient{
                         );
 
         try {
-            $thing = $this->pestQuery->patch('/services/data/v29.0/sobjects/'.$sfObject."/".$id."/", $data, $headers);
+            $thing = $this->client->patch('/services/data/v29.0/sobjects/'.$sfObject."/".$id."/", $data, $headers);
         } catch (Exception $e) {            
             echo $e->getMessage();
         }
@@ -312,12 +207,12 @@ class SalesforceRestClient{
         $this->refreshRest();
 
         $headers = array(
-                        'Authorization' => 'OAuth '. $this->getAccessToken(),
-                        "Content-type" => "application/json"
-                        );
+            'Authorization' => 'OAuth '. $this->getAccessToken(),
+            "Content-type" => "application/json"
+        );
 
         try {
-            $thing = $this->pestQuery->get('/services/data/v29.0/sobjects/'.$sfObject."/describe/", false, $headers);
+            $thing = $this->client->get('/services/data/v29.0/sobjects/'.$sfObject."/describe/", false, $headers);
         } catch (Exception $e) {            
             echo $e->getMessage();
         }
@@ -326,5 +221,75 @@ class SalesforceRestClient{
 
         return $response;
     }
+
+    /**
+     * Set the url based on wether the salesforce installation is in sandbox or not
+     * @param boolean $sandbox
+     */
+    private function setLoginBaseUrl($sandbox)
+    {
+        if(! $sandbox) {
+            $this->loginBaseUrl = 'https://test.salesforce.com';
+        }
+        else {
+            $this->loginBaseUrl = 'https://login.salesforce.com';   
+        }
+    }
+
+    private function setApiUserId($apiUserId)
+    {
+        $this->apiUserId = $apiUserId;
+    }
+
+    private function getApiUserId()
+    {
+        return $this->apiUserId;
+    }
+
+    private function setConsumerKey($key)
+    {
+        $this->consumerKey = $key;
+    }
+
+    private function setConsumerSecret($secret)
+    {
+        $this->consumerSecret = $secret;
+    }
+
+    private function setRedirectUri($url)
+    {
+        $this->redirectUri = $url;
+    }
+
+    private function setSfUsername($user)
+    {
+        $this->sfUsername = $user;
+    }
+
+    private function setSfPassword($pass)
+    {
+        $this->sfPassword = $pass;
+    }
+
+    private function getInstanceUrl()
+    {
+        return $this->instanceUrl;
+    }
+
+    private function getAccessToken()
+    {
+        return $this->accessToken;
+    }
+
+    private function setInstanceUrl($url)
+    {
+        $this->instanceUrl = $url;
+    }
+
+    private function setAccessToken($token)
+    {
+        $this->accessToken = $token;
+    }
+
 
 }

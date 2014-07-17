@@ -1,34 +1,17 @@
 <?php
-use Salesforce\SalesforceBundle\Entity\SalesforceRestClient;
-/**
- * Use within Symfony2 container
- */
+use Salesforce\SalesforceClient;
 
-// config.yml
-services:
-    sfrestclient:
-        class:        Salesforce\SalesforceBundle\Entity\SalesforceRestClient
-        arguments:    ['KEY','SECRET','OAUTHURL','USER','PASS']
+$config = array(
+    'consumerKey' => 'KEY',
+    'consumerSecret' => 'SECRET',
+    'redirectUri' => 'OAUTHURL',
+    'sfUsername' => 'SALESFORCEUSER',
+    'sfPassword' => 'SALESFORCEPASS'
+);
 
-// call from bundles
-$client = $this->get('sfrestclient');
-
-$dataArray = array(
-                    'Flight_arrival_number__c' => $data['Flight_arrival_number__c'],
-                    'Flight_arrival_city__c' => $data['Flight_arrival_city__c'],
-                );
-
-$results = $client->updateRecord(RECORDID,SALESFORCEOBJECT,$dataQuery);
-
-/**
- * General use
- */
-$restAPI = new SalesforceRestClient(
-            'KEY',
-            'SECRET',
-            'OAUTHURL',
-            'SALESFORCEUSER',
-            'SALESFORCEPASS'
+$sfClient = new SalesforceRestClient(
+            $config,
+            new Guzzle\Http\Client
             );
 
 $accounts = $restAPI->getRecords('SELECT Name, Id from Account LIMIT 10');
