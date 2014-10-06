@@ -10,9 +10,9 @@ $config = array(
 );
 
 $sfClient = new SalesforceRestClient(
-            $config,
-            new Guzzle\Http\Client
-            );
+    $config,
+    new Guzzle\Http\Client
+);
 
 $accounts = $restAPI->getRecords('SELECT Name, Id from Account LIMIT 10');
 
