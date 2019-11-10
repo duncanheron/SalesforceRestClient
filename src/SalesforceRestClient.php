@@ -18,7 +18,7 @@ class SalesforceRestClient{
     private $instanceUrl;
     private $client;
 
-    public function __construct(Array $conf, $guzzleClient) {
+    public function __construct(Array $conf, Client $guzzleClient) {
 
         $this->client = $guzzleClient;
 
@@ -29,9 +29,6 @@ class SalesforceRestClient{
         $this->setSfUsername($conf['sfUsername']);
         $this->setSfPassword($conf['sfPassword']);
 
-        // create a rest object - Pest in this case
-        $this->getRest();
-        
         if(! $this->isAuthorized()) {
             $this->authUsertoSalesforce();
         } else {
@@ -75,7 +72,6 @@ class SalesforceRestClient{
         
         $this->setAccessToken($query_request_data->access_token);
         $this->setInstanceUrl($query_request_data->instance_url);
-        $this->refreshRest();
 
         $_SESSION['access_token'] = $this->getAccessToken();
         $_SESSION['instance_url'] = $this->getInstanceUrl();
@@ -83,7 +79,7 @@ class SalesforceRestClient{
 
     private function isAuthorized()
     {
-        if(isset($_SESSION['access_token']) && $_SESSION['instance_url']) {            
+        if(isset($_SESSION['access_token']) && $_SESSION['instance_url']) {
             return true;
         }
         else {
@@ -98,7 +94,6 @@ class SalesforceRestClient{
      */
     public function getRecords($soql, $singleRecord = false) {
 
-        $this->refreshRest();
         $data = array('q' => $soql);
 
         $headers = array('Authorization' => 'OAuth '. $this->getAccessToken());
@@ -147,8 +142,6 @@ class SalesforceRestClient{
      */
     public function createRecord($sfObject,$data) {
 
-        $this->refreshRest();
-
         $data = json_encode($data);
 
         $headers = array(
@@ -176,8 +169,6 @@ class SalesforceRestClient{
      */
     public function updateRecord($id, $sfObject, $data) {
 
-        $this->refreshRest();
-
         $data = json_encode($data);
 
         $headers = array(
@@ -204,8 +195,6 @@ class SalesforceRestClient{
      */
     public function describeObject($sfObject)
     {
-        $this->refreshRest();
-
         $headers = array(
             'Authorization' => 'OAuth '. $this->getAccessToken(),
             "Content-type" => "application/json"
